@@ -13,6 +13,7 @@ class HomeController extends GetxController {
   final HomeRepository _repository;
 
   List<ListSurahResponse>? listSurah;
+  List<ListSurahResponse> _allSurah = [];
   bool isLoading = true;
   HomeState state = HomeIdle();
   final TextEditingController searchController = TextEditingController();
@@ -24,7 +25,27 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     getListSurah();
+    searchController.addListener(() {
+      final query = searchController.text;
+      _searchDebouncer(() {
+        onSearchChanged(query);
+      });
+    });
     super.onInit();
+  }
+
+  void onSearchChanged(String query) {
+    if (query.isEmpty) {
+      listSurah = _allSurah;
+    } else {
+      listSurah = _allSurah
+          .where((surah) =>
+              surah.namaLatin!.toLowerCase().contains(query.toLowerCase()) ||
+              surah.arti!.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+
+    update();
   }
 
   String backgroundCard(String name) {
@@ -44,6 +65,7 @@ class HomeController extends GetxController {
         if (data.isNotEmpty) {
           state = HomeSuccess(data);
           listSurah = data;
+          _allSurah = data;
         } else {
           state = HomeEmpty();
         }

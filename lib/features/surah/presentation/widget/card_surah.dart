@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_svg_provider/flutter_svg_provider.dart' as svg_provider;
 
 import '../../../../component/config/app_const.dart';
 import '../../../../component/config/app_style.dart';
+import '../../../../component/util/helper.dart';
+import '../../../../component/widget/popup_button.dart';
 // import '../../../../component/widget/custom_progress_bar.dart';
 
 class CardSurah extends StatelessWidget {
   final String arab;
   final String translate;
-  final String idn;
   final String numberAyat;
+  final String message;
   final bool enabled;
+  final bool isLoading;
 
-  const CardSurah({
-    super.key,
-    required this.arab,
-    required this.translate,
-    required this.idn,
-    required this.numberAyat,
-    required this.enabled,
-  });
+  const CardSurah(
+      {super.key,
+      required this.arab,
+      required this.translate,
+      required this.numberAyat,
+      required this.message,
+      required this.enabled,
+      required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
-    final Color textColor = enabled ? Colors.white : Colors.grey.shade300;
+    final Color textColor = enabled ? Colors.white : AppStyle.borderYellow;
     final String backgroundAsset = enabled
         ? AppConst.assetTopicBackground
         : AppConst.assetTopicDisabledBackground;
@@ -79,16 +81,75 @@ class CardSurah extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Html(data: translate, style: {
-                      "body": Style(
-                          fontFamily: "BloggerSans",
-                          color: textColor,
-                          fontWeight: FontWeight.w500,
-                          fontSize: FontSize(12))
-                    }),
-                    Text(idn,
-                        style:
-                            AppStyle.regular(size: 12, textColor: textColor)),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: isLoading == false
+                              ? PopupButton(
+                                  onPressed: () async {
+                                    final result =
+                                        await AlertModel.showConfirmation(
+                                      barrierDismissible: false,
+                                      title: "Transliterasi",
+                                      message: translate,
+                                      hoverColor: AppStyle.homeYoutubeHover,
+                                      mainColor: AppStyle.homeYoutubeRed,
+                                    );
+                                    if (result == true) {}
+                                  },
+                                  size: 30,
+                                  color: AppStyle.homeYoutubeRed,
+                                  shadowColor: AppStyle.homeYoutubeHover,
+                                  child: Text(
+                                    "Transliterasi",
+                                    textAlign: TextAlign.center,
+                                    style: AppStyle.bold(
+                                      size: 12,
+                                      textColor: AppStyle.whiteColor,
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  height: 30,
+                                ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        SizedBox(
+                          width: 100,
+                          child: isLoading == false
+                              ? PopupButton(
+                                  onPressed: () async {
+                                    final result =
+                                        await AlertModel.showConfirmation(
+                                      barrierDismissible: false,
+                                      title: "Terjemahan",
+                                      message: message,
+                                      hoverColor: AppStyle.hoverBlue,
+                                      mainColor: AppStyle.mainBlue,
+                                    );
+                                    if (result == true) {}
+                                  },
+                                  size: 30,
+                                  color: AppStyle.mainBlue,
+                                  shadowColor: AppStyle.hoverBlue,
+                                  child: Text(
+                                    "Terjemahan",
+                                    textAlign: TextAlign.center,
+                                    style: AppStyle.bold(
+                                      size: 12,
+                                      textColor: AppStyle.whiteColor,
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  height: 30,
+                                ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

@@ -10,17 +10,17 @@ class SurahController extends GetxController {
   final SurahRepository _repository;
   bool isLoading = true;
   SurahState state = SurahIdle();
-  String title = "";
-  int surahId = 0;
-  SurahByIdResponse? surahIdResponse;
+  final RxString title = ''.obs;
+  final RxInt surahId = 0.obs;
+  final Rx<SurahByIdResponse?> surahIdResponse = SurahByIdResponse().obs;
 
   SurahController(this._repository);
 
   @override
   void onInit() {
     super.onInit();
-    title = Get.arguments['title'];
-    surahId = Get.arguments['surah_id'];
+    title.value = Get.arguments['title'];
+    surahId.value = Get.arguments['surah_id'];
 
     getSurah();
   }
@@ -29,9 +29,9 @@ class SurahController extends GetxController {
     isLoading = true;
     state = SurahLoading();
     _repository.getListSurah(
-        nomor: surahId,
+        nomor: surahId.value,
         response: ResponseHandler(onSuccess: (data) async {
-          surahIdResponse = data;
+          surahIdResponse.value = data;
         }, onFailed: (responseError, message) async {
           state = SurahError();
 
@@ -43,5 +43,11 @@ class SurahController extends GetxController {
           isLoading = false;
           update();
         }));
+  }
+
+  void nextAyat({String isTitle = '', int isSurahId = 0}) {
+    title.value = isTitle;
+    surahId.value = isSurahId;
+    getSurah();
   }
 }
