@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
 
 import '../../../component/config/app_const.dart';
 import '../../../component/util/helper.dart';
@@ -13,6 +15,9 @@ class HomeController extends GetxController {
   List<ListSurahResponse>? listSurah;
   bool isLoading = true;
   HomeState state = HomeIdle();
+  final TextEditingController searchController = TextEditingController();
+  final Debouncer _searchDebouncer =
+      Debouncer(delay: const Duration(milliseconds: 500));
 
   HomeController(this._repository);
 

@@ -11,4 +11,8 @@ class AppConst {
   static String kidsIcon = '${path}icons/ic_kids.png';
   static String assetImageBeginnerLearn = '${path}icons/img_beginner.png';
   static String assetImageElementaryLearn = '${path}icons/img_elementary.png';
+  static String assetBackButton = '${path}icons/ic_back_button.svg';
+  static String assetTopicBackground = '${path}icons/ic_topic_background.svg';
+  static String assetTopicDisabledBackground =
+      '${path}icons/ic_topic_background_disabled.svg';
 }
