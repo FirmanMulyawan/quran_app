@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import '../../../component/config/app_route.dart';
 import '../../../component/config/app_style.dart';
 import '../../../component/util/helper.dart';
 import '../../../component/widget/popup_button.dart';
+import '../model/list_surah_response.dart';
 import 'home_controller.dart';
 
 class HomeScreen extends GetView<HomeController> {
@@ -77,47 +77,53 @@ class HomeScreen extends GetView<HomeController> {
                         ctrl.getListSurah();
                         return Future.value();
                       },
-                      child: ListView.separated(
-                          itemCount: (listSurah?.length ?? 5) + 1,
-                          separatorBuilder: (ctx, index) {
-                            return const SizedBox(
-                              height: 20,
-                            );
-                          },
-                          itemBuilder: (ctx, index) {
-                            if (isLoadingLevel == false) {
-                              if (index == lastIndex) {
-                                return const SizedBox(height: 200);
-                              }
-                            }
+                      child: ListView(
+                        children: [
+                          ListView.separated(
+                              itemCount: (listSurah?.length ?? 5) + 1,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              separatorBuilder: (ctx, index) {
+                                return const SizedBox(
+                                  height: 20,
+                                );
+                              },
+                              itemBuilder: (ctx, index) {
+                                if (isLoadingLevel == false) {
+                                  if (index == lastIndex) {
+                                    return const SizedBox(height: 200);
+                                  }
+                                }
 
-                            final surah = listSurah?[index];
+                                final surah = listSurah?[index];
 
-                            return _cardSurah(
-                              isloading: isLoadingLevel,
-                              onTap: () => Get.toNamed(AppRoute.surah,
-                                  arguments: {
-                                    'title': surah?.namaLatin,
-                                    'surah_id': surah?.nomor
-                                  }),
-                              backgroundImage: ctrl.backgroundCard(
-                                  surah?.tempatTurun ?? "madinah"),
-                              surahName: surah?.nama ?? "Nama Surah",
-                              namaLatin: surah?.namaLatin ?? "Nama Latin",
-                              arti: surah?.arti ?? "Pembukaan",
-                              jumlahAyat: surah?.jumlahAyat ?? 0,
-                              tempatTurun: surah?.tempatTurun ?? "madinah",
-                              deskripsi: surah?.deskripsi ?? '',
-                              hoverColor:
-                                  listSurah?[index].tempatTurun == "madinah"
-                                      ? AppStyle.pressedGreen
-                                      : AppStyle.hoverBlue,
-                              mainColor:
-                                  listSurah?[index].tempatTurun == "madinah"
-                                      ? AppStyle.green
-                                      : AppStyle.mainBlue,
-                            );
-                          }),
+                                return _cardSurah(
+                                  surah: surah,
+                                  isloading: isLoadingLevel,
+                                  isAudio: surah?.audio ?? '',
+                                  onTap: () => ctrl.toSurah(
+                                      namaLatin: surah?.namaLatin ?? '',
+                                      nomor: surah?.nomor ?? 0),
+                                  backgroundImage: ctrl.backgroundCard(
+                                      surah?.tempatTurun ?? "madinah"),
+                                  surahName: surah?.nama ?? "Nama Surah",
+                                  namaLatin: surah?.namaLatin ?? "Nama Latin",
+                                  arti: surah?.arti ?? "Pembukaan",
+                                  jumlahAyat: surah?.jumlahAyat ?? 0,
+                                  tempatTurun: surah?.tempatTurun ?? "madinah",
+                                  deskripsi: surah?.deskripsi ?? '',
+                                  hoverColor:
+                                      listSurah?[index].tempatTurun == "madinah"
+                                          ? AppStyle.pressedGreen
+                                          : AppStyle.hoverBlue,
+                                  mainColor:
+                                      listSurah?[index].tempatTurun == "madinah"
+                                          ? AppStyle.green
+                                          : AppStyle.mainBlue,
+                                );
+                              }),
+                        ],
+                      ),
                     ),
                   );
                 }),
@@ -129,6 +135,7 @@ class HomeScreen extends GetView<HomeController> {
 
   Widget _cardSurah(
       {void Function()? onTap,
+      ListSurahResponse? surah,
       String backgroundImage = '',
       String surahName = '',
       String namaLatin = '',
@@ -138,7 +145,8 @@ class HomeScreen extends GetView<HomeController> {
       String deskripsi = '',
       Color? hoverColor,
       Color? mainColor,
-      bool isloading = true}) {
+      bool isloading = true,
+      String isAudio = ''}) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -156,115 +164,128 @@ class HomeScreen extends GetView<HomeController> {
             ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Column(
+              child: Stack(
                 children: [
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(
-                        width: 80,
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              surahName,
-                              style: AppStyle.bold(
-                                  textColor: AppStyle.whiteColor, size: 20),
-                            ),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            Wrap(
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 80,
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  namaLatin,
-                                  style: AppStyle.medium(
-                                          textColor: Colors.white)
-                                      .copyWith(fontWeight: FontWeight.w500),
+                                  surahName,
+                                  style: AppStyle.bold(
+                                      textColor: AppStyle.whiteColor, size: 20),
                                 ),
-                                Container(
-                                  width: 1,
-                                  height: 13,
-                                  color: Colors.white,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 8),
+                                const SizedBox(
+                                  height: 4,
                                 ),
-                                Text(
-                                  arti,
-                                  style: AppStyle.medium(
-                                          textColor: Colors.white)
-                                      .copyWith(fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  "$jumlahAyat Ayat",
-                                  style: AppStyle.medium(
-                                          textColor: Colors.white)
-                                      .copyWith(fontWeight: FontWeight.w500),
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 13,
-                                  color: Colors.white,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                ),
-                                Text(
-                                  tempatTurun,
-                                  style: AppStyle.medium(
-                                          textColor: Colors.white)
-                                      .copyWith(fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              width: 130,
-                              child: isloading == false
-                                  ? PopupButton(
-                                      onPressed: () async {
-                                        final result =
-                                            await AlertModel.showConfirmation(
-                                          barrierDismissible: false,
-                                          title: "Deskripsi",
-                                          message: deskripsi,
-                                          hoverColor:
-                                              hoverColor ?? AppStyle.hoverBlue,
-                                          mainColor:
-                                              mainColor ?? AppStyle.mainBlue,
-                                        );
-                                        if (result == true) {}
-                                      },
-                                      size: 20,
-                                      color: AppStyle.mainOrange,
-                                      shadowColor: AppStyle.hoverOrange,
-                                      child: Text(
-                                        "Deskription",
-                                        textAlign: TextAlign.center,
-                                        style: AppStyle.bold(
-                                          size: 10,
-                                          textColor: AppStyle.whiteColor,
-                                        ),
-                                      ),
-                                    )
-                                  : Container(
-                                      width: 20,
+                                Wrap(
+                                  children: [
+                                    Text(
+                                      namaLatin,
+                                      style: AppStyle.medium(
+                                              textColor: Colors.white)
+                                          .copyWith(
+                                              fontWeight: FontWeight.w500),
                                     ),
+                                    Container(
+                                      width: 1,
+                                      height: 13,
+                                      color: Colors.white,
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                    ),
+                                    Text(
+                                      arti,
+                                      style: AppStyle.medium(
+                                              textColor: Colors.white)
+                                          .copyWith(
+                                              fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 4,
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      "$jumlahAyat Ayat",
+                                      style: AppStyle.medium(
+                                              textColor: Colors.white)
+                                          .copyWith(
+                                              fontWeight: FontWeight.w500),
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 13,
+                                      color: Colors.white,
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                    ),
+                                    Text(
+                                      tempatTurun,
+                                      style: AppStyle.medium(
+                                              textColor: Colors.white)
+                                          .copyWith(
+                                              fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                SizedBox(
+                                  width: 130,
+                                  child: isloading == false
+                                      ? PopupButton(
+                                          onPressed: () async {
+                                            final result = await AlertModel
+                                                .showConfirmation(
+                                              barrierDismissible: false,
+                                              title: "Deskripsi",
+                                              message: deskripsi,
+                                              hoverColor: hoverColor ??
+                                                  AppStyle.hoverBlue,
+                                              mainColor: mainColor ??
+                                                  AppStyle.mainBlue,
+                                            );
+                                            if (result == true) {}
+                                          },
+                                          size: 20,
+                                          color: AppStyle.mainOrange,
+                                          shadowColor: AppStyle.hoverOrange,
+                                          child: Text(
+                                            "Deskription",
+                                            textAlign: TextAlign.center,
+                                            style: AppStyle.bold(
+                                              size: 10,
+                                              textColor: AppStyle.whiteColor,
+                                            ),
+                                          ),
+                                        )
+                                      : Container(
+                                          width: 20,
+                                        ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                  Positioned(
+                      top: 30,
+                      right: 0,
+                      child: _audioButton(isAudio: isAudio, surah: surah)),
                 ],
               ),
             ),
@@ -272,5 +293,57 @@ class HomeScreen extends GetView<HomeController> {
         ),
       ),
     );
+  }
+
+  Widget _audioButton({
+    String isAudio = '',
+    ListSurahResponse? surah,
+  }) {
+    return GetBuilder<HomeController>(builder: (ctrl) {
+      final audioCondition = surah?.audioCondition;
+      return Row(
+        children: [
+          (audioCondition == "stop")
+              ? IconButton(
+                  onPressed: () {
+                    controller.playAudio(surah);
+                  },
+                  icon: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                  ))
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    (audioCondition == "playing")
+                        ? IconButton(
+                            onPressed: () {
+                              controller.pauseAudio(surah);
+                            },
+                            icon: const Icon(
+                              Icons.pause,
+                              color: Colors.white,
+                            ))
+                        : IconButton(
+                            onPressed: () {
+                              controller.resumeAudio(surah);
+                            },
+                            icon: const Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                            )),
+                    IconButton(
+                        onPressed: () {
+                          controller.stopAudio(surah);
+                        },
+                        icon: const Icon(
+                          Icons.stop,
+                          color: Colors.white,
+                        ))
+                  ],
+                ),
+        ],
+      );
+    });
   }
 }

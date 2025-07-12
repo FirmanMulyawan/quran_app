@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../../../component/config/app_const.dart';
+import '../../../component/config/app_route.dart';
 import '../../../component/util/helper.dart';
 import '../../../component/util/state.dart';
 import '../model/list_surah_response.dart';
@@ -19,6 +21,8 @@ class HomeController extends GetxController {
   final TextEditingController searchController = TextEditingController();
   final Debouncer _searchDebouncer =
       Debouncer(delay: const Duration(milliseconds: 500));
+  final player = AudioPlayer();
+  ListSurahResponse? lastAudio;
 
   HomeController(this._repository);
 
@@ -33,6 +37,13 @@ class HomeController extends GetxController {
     });
     super.onInit();
   }
+
+  // @override
+  // void onClose() async {
+  //   await player.stop();
+  //   await player.dispose();
+  //   super.onClose();
+  // }
 
   void onSearchChanged(String query) {
     if (query.isEmpty) {
@@ -81,5 +92,125 @@ class HomeController extends GetxController {
         update();
       }),
     );
+  }
+
+  void toSurah({String namaLatin = '', int nomor = 0}) async {
+    await player.stop();
+    Get.toNamed(AppRoute.surah,
+        arguments: {'title': namaLatin, 'surah_id': nomor});
+  }
+
+  void pauseAudio(ListSurahResponse? surah) async {
+    try {
+      await player.pause();
+      surah?.audioCondition = "pause";
+      update();
+    } on PlayerException catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: e.message.toString(),
+      );
+    } on PlayerInterruptedException catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: "Connection aborted: ${e.message.toString()}",
+      );
+    } catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: "An error occured: ${e.toString()}",
+      );
+    }
+  }
+
+  void stopAudio(ListSurahResponse? surah) async {
+    try {
+      await player.stop();
+      surah?.audioCondition = "stop";
+      update();
+    } on PlayerException catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: e.message.toString(),
+      );
+    } on PlayerInterruptedException catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: "Connection aborted: ${e.message.toString()}",
+      );
+    } catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: "An error occured: ${e.toString()}",
+      );
+    }
+  }
+
+  void resumeAudio(ListSurahResponse? surah) async {
+    try {
+      surah?.audioCondition = "playing";
+      update();
+      await player.play();
+      surah?.audioCondition = "stop";
+      update();
+    } on PlayerException catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: e.message.toString(),
+      );
+    } on PlayerInterruptedException catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: "Connection aborted: ${e.message.toString()}",
+      );
+    } catch (e) {
+      AlertModel.showAlert(
+        title: "Error",
+        message: "An error occured: ${e.toString()}",
+      );
+    }
+  }
+
+  void playAudio(ListSurahResponse? surah) async {
+    if (surah?.audio != null) {
+      try {
+        // ignore: prefer_conditional_assignment
+        if (lastAudio == null) {
+          lastAudio = surah;
+        }
+        lastAudio?.audioCondition = "stop";
+        lastAudio = surah;
+        lastAudio?.audioCondition = "stop";
+        update();
+        await player.stop();
+        await player.setUrl(surah?.audio ?? '');
+        surah?.audioCondition = "playing";
+        update();
+        await player.play();
+        surah?.audioCondition = "stop";
+        await player.stop();
+        update();
+      } on PlayerException catch (e) {
+        AlertModel.showAlert(
+          title: "Error",
+          message: e.message.toString(),
+        );
+      } on PlayerInterruptedException catch (e) {
+        AlertModel.showAlert(
+          title: "Error",
+          message: "Connection aborted: ${e.message.toString()}",
+        );
+      } catch (e) {
+        AlertModel.showAlert(
+          title: "Error",
+          message: "An error occured: ${e.toString()}",
+        );
+      }
+    } else {
+      AlertModel.showAlert(
+        title: "Error",
+        message: "Audio Not Found",
+      );
+    }
   }
 }

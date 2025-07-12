@@ -9,6 +9,7 @@ class ListSurahResponse implements Serializable {
   String? arti;
   String? deskripsi;
   String? audio;
+  String audioCondition;
 
   ListSurahResponse(
       {this.nomor,
@@ -18,19 +19,21 @@ class ListSurahResponse implements Serializable {
       this.tempatTurun,
       this.arti,
       this.deskripsi,
-      this.audio});
+      this.audio,
+      this.audioCondition = "stop"});
 
-  ListSurahResponse.fromJson(Map<String, dynamic> json) {
-    nomor = json['nomor'];
-    nama = json['nama'];
-    namaLatin = json['nama_latin'];
-    jumlahAyat = json['jumlah_ayat'];
-    tempatTurun = json['tempat_turun'];
-    arti = json['arti'];
-    deskripsi = json['deskripsi'];
-    audio = json['audio'];
-  }
+  ListSurahResponse.fromJson(Map<String, dynamic> json)
+      : nomor = json['nomor'],
+        nama = json['nama'],
+        namaLatin = json['nama_latin'],
+        jumlahAyat = json['jumlah_ayat'],
+        tempatTurun = json['tempat_turun'],
+        arti = json['arti'],
+        deskripsi = json['deskripsi'],
+        audio = json['audio'],
+        audioCondition = "stop";
 
+  @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['nomor'] = nomor;
@@ -41,6 +44,7 @@ class ListSurahResponse implements Serializable {
     data['arti'] = arti;
     data['deskripsi'] = deskripsi;
     data['audio'] = audio;
+    data['audioCondition'] = audioCondition;
     return data;
   }
 }

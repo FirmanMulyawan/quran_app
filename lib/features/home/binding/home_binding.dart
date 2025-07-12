@@ -9,7 +9,8 @@ class HomeBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut(() => HomeDatasource(Network.dioClient()));
-    Get.lazyPut(() => HomeController(Get.find()));
     Get.lazyPut(() => HomeRepository(Get.find()));
+    Get.lazyPut(() => HomeController(Get.find()), fenix: true);
+    // Get.lazyPut(() => HomeController(Get.find()));
   }
 }

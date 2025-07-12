@@ -9,7 +9,7 @@ class SurahBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut(() => SurahDatasource(Network.dioClient()));
-    Get.lazyPut(() => SurahController(Get.find()));
     Get.lazyPut(() => SurahRepository(Get.find()));
+    Get.lazyPut(() => SurahController(Get.find()));
   }
 }

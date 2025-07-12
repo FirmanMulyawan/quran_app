@@ -25,6 +25,7 @@ dependencies:
   loader_overlay: ^5.0.0
   flutter_html: ^3.0.0
   flutter_svg_provider: ^1.0.7
+  just_audio: ^0.10.4
   # flutter_html_video: ^3.0.0
   # flutter_html_audio: ^3.0.0
   flutter_animate: ^4.3.0
