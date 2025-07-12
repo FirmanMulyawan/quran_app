@@ -22,7 +22,11 @@ class HomeController extends GetxController {
   final Debouncer _searchDebouncer =
       Debouncer(delay: const Duration(milliseconds: 500));
   final player = AudioPlayer();
-  ListSurahResponse? lastAudio;
+  final Rx<ListSurahResponse?> lastAudio = ListSurahResponse().obs;
+
+  final Rx<Duration> duration = Duration.zero.obs;
+  final Rx<Duration> position = Duration.zero.obs;
+  RxBool isPlaying = false.obs;
 
   HomeController(this._repository);
 
@@ -35,6 +39,22 @@ class HomeController extends GetxController {
         onSearchChanged(query);
       });
     });
+
+    // addListener player
+    player.playerStateStream.listen((state) {
+      isPlaying.value = state.playing;
+    });
+
+    player.durationStream.listen((newDuration) {
+      if (newDuration != null) {
+        duration.value = newDuration;
+      }
+    });
+
+    player.positionStream.listen((pos) {
+      position.value = pos;
+    });
+
     super.onInit();
   }
 
@@ -99,6 +119,14 @@ class HomeController extends GetxController {
     Get.toNamed(AppRoute.surah,
         arguments: {'title': namaLatin, 'surah_id': nomor});
   }
+
+  void handleSlider(value) async {
+    final pos = Duration(seconds: value.toInt());
+    await player.seek(pos);
+
+    resumeAudio(lastAudio.value);
+  }
+  // ========= controller audio
 
   void pauseAudio(ListSurahResponse? surah) async {
     try {
@@ -175,12 +203,14 @@ class HomeController extends GetxController {
     if (surah?.audio != null) {
       try {
         // ignore: prefer_conditional_assignment
-        if (lastAudio == null) {
-          lastAudio = surah;
+        if (lastAudio.value == null) {
+          lastAudio.value = surah;
+          isPlaying.value = true;
         }
-        lastAudio?.audioCondition = "stop";
-        lastAudio = surah;
-        lastAudio?.audioCondition = "stop";
+        lastAudio.value?.audioCondition = "stop";
+        lastAudio.value = surah;
+        isPlaying.value = true;
+        lastAudio.value?.audioCondition = "stop";
         update();
         await player.stop();
         await player.setUrl(surah?.audio ?? '');
