@@ -22,7 +22,8 @@ class HomeController extends GetxController {
   final Debouncer _searchDebouncer =
       Debouncer(delay: const Duration(milliseconds: 500));
   final player = AudioPlayer();
-  final Rx<ListSurahResponse?> lastAudio = ListSurahResponse().obs;
+  // final Rx<ListSurahResponse?> lastAudio = ListSurahResponse().obs;
+  final Rxn<ListSurahResponse> lastAudio = Rxn<ListSurahResponse>();
 
   final Rx<Duration> duration = Duration.zero.obs;
   final Rx<Duration> position = Duration.zero.obs;
@@ -71,8 +72,7 @@ class HomeController extends GetxController {
     } else {
       listSurah = _allSurah
           .where((surah) =>
-              surah.namaLatin!.toLowerCase().contains(query.toLowerCase()) ||
-              surah.arti!.toLowerCase().contains(query.toLowerCase()))
+              surah.namaLatin!.toLowerCase().contains(query.toLowerCase()))
           .toList();
     }
 
@@ -115,6 +115,7 @@ class HomeController extends GetxController {
   }
 
   void toSurah({String namaLatin = '', int nomor = 0}) async {
+    lastAudio.value = null;
     await player.stop();
     Get.toNamed(AppRoute.surah,
         arguments: {'title': namaLatin, 'surah_id': nomor});
@@ -153,6 +154,7 @@ class HomeController extends GetxController {
 
   void stopAudio(ListSurahResponse? surah) async {
     try {
+      lastAudio.value = null;
       await player.stop();
       surah?.audioCondition = "stop";
       update();
